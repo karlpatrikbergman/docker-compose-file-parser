@@ -1,0 +1,33 @@
+group 'se.patrikbergman.java.yaml'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'idea'
+apply plugin: 'java'
+
+compileJava {
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+        events 'started', 'passed'
+    }
+}
+
+/** Repositories settings **/
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven { url "https://jitpack.io" } //Get a git project into build
+}
+/** Dependency settings **/
+dependencies {
+    compile("org.projectlombok:lombok:1.16.10")
+    compile("org.yaml:snakeyaml:1.17")
+    compile('se.patrikbergman.java:java-utilities:1.0-SNAPSHOT')
+
+    testCompile("junit:junit:4.12")
+}

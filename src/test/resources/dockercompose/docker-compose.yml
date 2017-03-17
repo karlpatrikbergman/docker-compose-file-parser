@@ -1,0 +1,62 @@
+version: "2"
+services:
+  alarmservice:
+    image: com.infinera.metro.service.alarm/alarmservice:1.0-SNAPSHOT
+    restart: unless-stopped
+    container_name: alarmservice
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-compose
+    ports:
+      - 8080:8080
+    networks:
+      alarmservice_network:
+    depends_on:
+      - alarmservice_db
+    links:
+      - alarmservice_db
+    entrypoint: ./wait-for-it.sh
+    command: alarmservice_db:3306 --timeout=20 --strict -- ./entrypoint.sh
+  alarmservice_db:
+    image: mariadb:latest
+    container_name: alarmservice_db
+    ports:
+    networks:
+      alarmservice_network:
+    environment:
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: alarmservice
+      MYSQL_ROOT_PASSWORD: root
+  node1:
+    image: artifactory.transmode.se/tm3k/trunk-hostenv
+    container_name: node1
+    ports:
+      - 8001:80
+    networks:
+      alarmservice_network:
+        ipv4_address: 172.25.0.101
+  node2:
+    image: artifactory.transmode.se/tm3k/trunk-hostenv
+    container_name: node2
+    ports:
+      - 8002:80 #<port-on-host>:<port-on-container>
+    networks:
+      alarmservice_network:
+        ipv4_address: 172.25.0.102
+  nodes_setup:
+    build: nodes_setup
+    container_name: nodes_setup
+    depends_on:
+      - node1
+      - node2
+    links:
+      - node1
+      - node2
+    networks:
+      alarmservice_network:
+networks:
+  alarmservice_network:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.25.0.0/24 # Allows for 255 addresses
